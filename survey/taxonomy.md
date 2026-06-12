@@ -1,128 +1,117 @@
 # MMEA 方法分类体系
 
-> 多模态知识图谱实体对齐方法的系统性分类
+> 基于文献系统梳理（覆盖至 2026 年初），多维度分类
 
 ---
 
-## 一、按模态组合分类
+## 维度一：模态组合
 
-### 1.1 视觉 + 关系结构（双模态）
-- 早期方法，仅融合图像特征和关系图结构
-- 代表：EVA（2021）
-
-### 1.2 视觉 + 文本 + 关系结构（三模态）
-- 当前主流，同时利用实体图像、名称/描述文本和关系三元组
-- 代表：MMEA、MCLEA、MEAformer、UMAEA
-
-### 1.3 视觉 + 文本 + 关系 + 数值属性（四模态）
-- 进一步引入数值型属性（如出生年份、坐标等）
-- 代表：部分 MSNEA 变体
+| 类别 | 描述 | 代表方法 |
+|------|------|---------|
+| 结构/关系 | 仅 KG 三元组 | MTransE, BootEA, MRAEA |
+| 结构 + 属性 | + 字面量属性 | JAPE, GCN-Align |
+| 结构 + 视觉 | + 图像 | EVA (IJCAI 2021) |
+| 结构 + 视觉 + 属性 | 三模态 | MCLEA, MEAformer, UMAEA, PMF |
+| 结构 + 视觉 + 属性 + 文本描述 | 四模态 | ACK-MMEA, FMEA-TD (2025), PMF |
 
 ---
 
-## 二、按跨模态融合策略分类
+## 维度二：跨模态融合策略
 
-### 2.1 早期融合（Early Fusion）
-- 在特征提取后直接拼接或加权求和
-- 优点：简单，计算开销低
-- 缺点：缺乏模态间深度交互
-- 代表：MMEA（拼接后输入 GNN）
-
-### 2.2 晚期融合（Late Fusion）
-- 各模态独立建模，最后融合对齐分数
-- 优点：各模态可独立优化
-- 缺点：忽略模态间互补信息
-- 代表：EVA（图像打分 + 关系打分线性组合）
-
-### 2.3 交叉模态注意力融合（Cross-modal Attention）
-- 用注意力机制建模模态间相互影响
-- 代表：MEAformer（Transformer 跨模态交互）、MCLEA（对比+注意力）
-
-### 2.4 生成式融合（Generative）
-- 通过生成缺失模态来处理模态不完整问题
-- 代表：GEEA、部分 diffusion-based 方法（2024）
+| 策略 | 机制 | 优缺点 | 代表 |
+|------|------|--------|------|
+| **早期融合**（Early） | Concat/Add 后统一建模 | 简单，缺深度交互 | MMEA (KSEM 2020) |
+| **晚期融合**（Late） | 各模态独立打分，最后线性组合 | 可模块化 | EVA |
+| **跨模态注意力**（Cross-modal Attention）| Transformer 建模模态间互补 | 强表达，计算重 | MEAformer, MoAlign, PathFusion |
+| **自适应/实体级**（Adaptive） | 每个实体动态学习模态权重 | 最灵活 | MEAformer, AMF2SEA (COLING 2025) |
+| **一致性+特异性分离** | 分离共享信号与模态独有信号 | 理论清晰 | MCSFF (IEEE 2024) |
 
 ---
 
-## 三、按训练目标分类
+## 维度三：训练目标
 
-### 3.1 基于边距的排序损失（Margin-based）
-- 经典 TransE 风格的正负样本对比
-- 代表：MMEA
-
-### 3.2 对比学习（Contrastive Learning）
-- InfoNCE / NT-Xent 等对比损失
-- 优点：负样本利用更充分，表示更均匀
-- 代表：MCLEA、UMAEA
-
-### 3.3 综合损失（混合）
-- 结合对齐损失 + 模态一致性损失 + 辅助任务损失
-- 代表：MEAformer（对齐 + 模态预测）
+| 目标类型 | 代表 |
+|---------|------|
+| Margin/Triplet loss | MMEA (2020) |
+| 模态内对比学习（InfoNCE） | MCLEA |
+| 跨模态对比 | MCLEA (IAL loss), PCMEA (AAAI 2024) |
+| 互信息最大化 | PCMEA |
+| 生成式（VAE/GAN）| GEEA/M-VAE (ICLR 2024) |
+| 跨模态一致性损失 | PMF (ACL 2024) |
+| Dirichlet 能量语义插值 | DESAlign (ICDE 2024) |
+| 因果反事实去偏 | CDMEA (SIGIR 2025) |
 
 ---
 
-## 四、按图神经网络骨干分类
+## 维度四：监督类型
 
-| 骨干类型 | 代表方法 |
-|---------|---------|
-| GCN | MMEA |
-| GAT | MSNEA |
-| RGCN | 早期方法 |
-| Transformer（全局注意力）| MEAformer |
-| 无 GNN（纯对比）| MCLEA（浅层） |
-
----
-
-## 五、按种子对利用方式分类
-
-### 5.1 监督对齐（Supervised）
-- 使用标注好的种子实体对（通常 30% 训练集）
-- 当前大多数方法
-
-### 5.2 半监督 / 迭代标签扩展
-- 训练过程中迭代地将高置信度对齐结果加入种子集
-- 代表：多数方法的迭代策略
-
-### 5.3 无监督 / 零样本
-- 不依赖种子对，依赖跨语言预训练或自监督信号
-- 研究较少，有机会点
+| 类型 | 代表 |
+|------|------|
+| 有监督（固定种子对）| MEAformer 等大多数方法 |
+| 半监督 / 伪标签扩展 | PCMEA (AAAI 2024), SE-GNN (TKDE 2025) |
+| 迭代自举（bootstrapping）| PathFusion, MCSFF, SE-GNN |
+| 无监督 / 自监督 | OPICE (2026), UMEAD (2025), PSQE (2026) |
+| 少样本 / 低资源 | MEAformer（低资源设置 SOTA）, MoAlign |
 
 ---
 
-## 六、按模态缺失处理能力分类
+## 维度五：模态缺失处理能力
 
-### 6.1 假设模态完整（大多数方法）
-- 训练/测试时假设每个实体都有图像和文本
-
-### 6.2 模态鲁棒 / 缺失处理
-- 显式建模模态缺失，训练时随机 dropout 某模态
-- 代表：UMAEA（不确定性建模）、部分 2024 方法
+| 类型 | 代表 |
+|------|------|
+| 假设模态完整（大多数方法）| EVA, MMEA, MCLEA, MEAformer |
+| 不确定性建模 | UMAEA (ISWC 2023) |
+| 能量引导传播 | DESAlign (ICDE 2024) |
+| 高斯噪声掩码统一框架 | SnAg (arXiv 2024) |
+| 因果去偏（视觉噪声）| CDMEA (SIGIR 2025) |
+| 渐进模态冻结 | PMF (ACL 2024) |
 
 ---
 
-## 七、研究趋势（时间轴）
+## 时间轴
 
 ```
-2021  EVA ─────────────── 视觉+关系，图像打分辅助
-2022  MMEA ──────────────  三模态 GNN 融合
-      MCLEA ────────────── 对比学习引入 MMEA
-      MSNEA ────────────── 语义网络多模态
-2023  MEAformer ────────── Transformer 跨模态交互（ACM MM Best Paper候选）
-      UMAEA ────────────── 不确定性感知对齐
-      CDMEA ────────────── 跨模态蒸馏
-2024  ? ─────────────────  生成式、LLM增强、模态缺失鲁棒性
+2021  EVA (IJCAI) ─────────────── 视觉+关系，图像打分辅助
+2022  MMEA (KSEM) ──────────────  奠基三模态框架 + benchmark
+      MCLEA (COLING) ──────────── 对比学习引入 MMEA
+      MSNEA (KDD) ─────────────── 语义感知多模态网络
+2023  MEAformer (ACM MM) ───────── Transformer 跨模态 + 元权重（当前主流 baseline）
+      UMAEA (ISWC) ────────────── 不确定性感知 + 缺失模态 benchmark
+      ACK-MMEA (WWW) ──────────── 属性一致性
+      PathFusion (ISWC) ───────── 图路径统一多模态迭代融合
+      MoAlign (EMNLP Findings) ── 少样本鲁棒 Transformer
+2024  PCMEA (AAAI) ────────────── 互信息 + 伪标签半监督
+      DESAlign (ICDE) ─────────── Dirichlet 能量语义一致性
+      PMF (ACL) ───────────────── 渐进模态冻结，9 数据集 SOTA
+      LoginMEA (ECAI) ─────────── 实体级多模态 → 全局 GNN
+      MCSFF (IEEE) ────────────── 一致性+特异性分离
+      GEEA/M-VAE (ICLR) ──────── 生成式 KG 实体转换
+      LLM-Align (arXiv) ──────── 零样本 LLM 对齐
+      M3 Dataset (CIKM) ──────── 多图像 benchmark
+2025  CDMEA (SIGIR) ───────────── 因果视角去除视觉噪声偏置
+      SE-GNN (TKDE) ───────────── 种子扩展半监督 GNN
+      AMF2SEA (COLING) ────────── 自适应融合策略分析
+      EA-Agent/AgentEA (arXiv) ── LLM 多智能体推理
+2026  PSQE (arXiv) ────────────── 无监督伪种子质量增强
+      OPICE (Electronics) ──────── 本体引导无监督 MMEA
 ```
 
 ---
 
-## 八、分类总结矩阵
+## 分类总结矩阵
 
-| 方法 | 模态 | 融合策略 | 训练目标 | 模态缺失处理 |
-|------|------|---------|---------|------------|
-| EVA | V+R | 晚期 | Margin | ✗ |
-| MMEA | V+T+R | 早期 | Margin | ✗ |
-| MCLEA | V+T+R | 交叉注意力 | 对比 | ✗ |
-| MSNEA | V+T+R | 语义网络 | Margin | ✗ |
-| MEAformer | V+T+R | Transformer跨模态 | 混合 | ✗ |
-| UMAEA | V+T+R | 不确定性加权 | 对比 | ✓ |
-| CDMEA | V+T+R | 蒸馏 | 蒸馏+对比 | 部分 |
+| 方法 | 年份 | 会议 | 模态 | 融合策略 | 训练目标 | 监督 | 缺失处理 |
+|------|------|------|------|---------|---------|------|---------|
+| EVA | 2021 | IJCAI | V+R | 晚期 | Margin | 有监督 | ✗ |
+| MMEA | 2022 | KSEM | V+T+R | 早期 | Margin | 有监督 | ✗ |
+| MCLEA | 2022 | COLING | V+T+R | 跨模态注意力 | 对比 | 有监督 | ✗ |
+| MSNEA | 2022 | KDD | V+T+R | 语义网络 | Margin | 有监督 | ✗ |
+| MEAformer | 2023 | ACM MM | V+T+R | 自适应 Transformer | Margin+辅助 | 有/少样本 | ✗ |
+| UMAEA | 2023 | ISWC | V+T+R | 不确定性加权 | 对比 | 有监督 | ✓ |
+| PathFusion | 2023 | ISWC | V+T+R | 图路径迭代 | 对比 | 迭代 | ✗ |
+| PCMEA | 2024 | AAAI | V+T+R | 跨模态 | MI+对比 | 半监督 | ✗ |
+| DESAlign | 2024 | ICDE | V+T+R | 能量引导 | Dirichlet能量 | 有监督 | ✓ |
+| PMF | 2024 | ACL | V+T+R | 渐进冻结 | 一致性对比 | 半监督 | ✓ |
+| LoginMEA | 2024 | ECAI | V+T+R | 局部→全局 | 对比 | 有监督 | ✗ |
+| CDMEA | 2025 | SIGIR | V+T+R | 因果去偏 | 反事实 | 有监督 | ✓（噪声） |
+| M-VAE/GEEA | 2024 | ICLR | V+T+R | 生成 | VAE | 无监督 | ✓ |
